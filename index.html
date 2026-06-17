@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>SewaAja - Tempat Penyewaan Alat Serba Ada</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         body {
             background: linear-gradient(180deg, rgba(37, 99, 235, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
@@ -494,6 +495,31 @@
         </div>
     </div>
 
+        <!-- Modal QR Code Pembayaran -->
+    <div id="paymentModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+        <div class="glass-card rounded-2xl p-6 w-full max-w-md animate-[fadeInUp_0.3s_ease-out]">
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">💳 Pembayaran</h3>
+                <p id="paymentAmount" class="text-blue-600 font-bold text-lg mb-2"></p>
+                <p class="text-gray-500 text-xs mb-4">Scan QR Code di bawah untuk membayar</p>
+                
+                <div id="qrcode" class="flex justify-center mb-4"></div>
+                
+                <div class="bg-gray-100/80 dark:bg-gray-700/50 p-3 rounded-lg mb-4">
+                    <p class="text-xs text-gray-600 dark:text-gray-300">Atau transfer ke:</p>
+                    <p class="font-bold text-sm text-gray-800 dark:text-white">Bank BCA - 1234567890</p>
+                    <p class="font-bold text-sm text-gray-800 dark:text-white">a.n. SewaAja Official</p>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button onclick="confirmPayment()" class="btn-gradient text-white flex-1 py-2.5 rounded-xl font-bold text-sm transition">✅ Saya Sudah Bayar</button>
+                    <button onclick="closeModal('paymentModal')" class="bg-gray-200/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-xl text-sm hover:bg-gray-300/80 transition">Tutup</button>
+                </div>
+                <p class="text-xs text-gray-400 mt-3">*Setelah bayar, admin akan segera memproses penyewaan Anda</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ==================== DATA PRODUK DEFAULT ====================
         const defaultProducts = [
@@ -747,14 +773,17 @@
             sorted.forEach(r => {
                 const row = tbody.insertRow();
                 let statusClass = '';
-                if (r.status === 'Menunggu') statusClass = 'status-menunggu';
+                if (r.status === 'Menunggu Pembayaran') statusClass = 'status-menunggu';
+                else if (r.status === 'Dibayar') statusClass = 'status-dibayar';
                 else if (r.status === 'Disewa') statusClass = 'status-disewa';
                 else statusClass = 'status-tersedia';
                 
                 let actions = '';
-                if (r.status === 'Menunggu') {
-                    actions = `<button onclick="approveRental(${r.id})" class="text-green-600 mr-1 text-xs">✅ Setujui</button>
+                if (r.status === 'Menunggu Pembayaran') {
+                    actions = `<button onclick="confirmPaymentFromAdmin(${r.id})" class="text-green-600 mr-1 text-xs">✅ Konfirmasi Bayar</button>
                                <button onclick="rejectRental(${r.id})" class="text-red-600 text-xs">❌ Tolak</button>`;
+                } else if (r.status === 'Dibayar') {
+                    actions = `<button onclick="approveRental(${r.id})" class="text-blue-600 text-xs">✓ Proses Sewa</button>`;
                 } else if (r.status === 'Disewa') {
                     actions = `<button onclick="completeRental(${r.id})" class="text-blue-600 text-xs">✓ Selesaikan</button>`;
                 } else {
@@ -774,7 +803,15 @@
                 `;
             });
         }
-
+                function confirmPaymentFromAdmin(id) {
+            const rental = rentals.find(r => r.id === id);
+            if (rental && rental.status === 'Menunggu Pembayaran') {
+                rental.status = 'Dibayar';
+                saveToStorage();
+                renderAll();
+                showToast(`✅ Pembayaran ${rental.product_name} telah dikonfirmasi!`, 'success');
+            }
+        }
         // ==================== CRUD ====================
         function editProduct(id) {
             const p = products.find(p => p.id === id);
@@ -890,6 +927,8 @@
             const hari = Math.ceil((new Date(tglSelesai) - new Date(tglMulai)) / (1000 * 60 * 60 * 24));
             if (hari <= 0) return showToast('⚠️ Tanggal selesai harus setelah tanggal mulai!', 'error');
             
+            const totalHarga = product.price * hari;
+            
             const newRental = {
                 id: Date.now(),
                 product_id: productId,
@@ -900,17 +939,71 @@
                 alamat: alamat,
                 tgl_mulai: tglMulai,
                 tgl_selesai: tglSelesai,
-                total_harga: product.price * hari,
-                status: 'Menunggu'
+                total_harga: totalHarga,
+                status: 'Menunggu Pembayaran'  // Ubah status jadi menunggu pembayaran
             };
             
             rentals.push(newRental);
             saveToStorage();
-            showToast('✅ Permintaan sewa diajukan! Menunggu persetujuan admin.', 'success');
+            showToast('✅ Permintaan sewa dibuat! Silakan lakukan pembayaran.', 'success');
             closeModal('sewaModal');
+            
+            // Tampilkan QR Code pembayaran
+            generateQRCode(totalHarga, newRental.id);
+            
             if (currentUser.role === 'admin') renderRentalTable();
         }
+                // ==================== QR CODE PAYMENT ====================
+        let currentPaymentRentalId = null;
 
+        function generateQRCode(amount, rentalId) {
+            currentPaymentRentalId = rentalId;
+            
+            // Data QR
+            const qrData = `SewaAja Payment\nID: ${rentalId}\nTotal: Rp ${amount.toLocaleString()}\nBank: BCA 1234567890 a.n SewaAja`;
+            
+            // Clear previous QR
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+            
+            try {
+                // Generate QR Code
+                new QRCode(qrcodeDiv, {
+                    text: qrData,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#1e293b",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch(e) {
+                qrcodeDiv.innerHTML = `
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600 dark:text-gray-300">QR Code tidak tersedia</p>
+                        <p class="text-xs text-gray-500 mt-2">Silakan transfer ke rekening di bawah</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('paymentAmount').innerHTML = `Total: Rp ${amount.toLocaleString()}`;
+            openModal('paymentModal');
+        }
+
+        function confirmPayment() {
+            if (currentPaymentRentalId) {
+                const rental = rentals.find(r => r.id === currentPaymentRentalId);
+                if (rental && rental.status === 'Menunggu Pembayaran') {
+                    rental.status = 'Dibayar';
+                    saveToStorage();
+                    showToast('✅ Terima kasih! Pembayaran Anda telah dikonfirmasi.\nAdmin akan segera memproses penyewaan Anda.', 'success');
+                    closeModal('paymentModal');
+                    renderAll();
+                } else {
+                    showToast('⚠️ Status penyewaan sudah berubah', 'error');
+                    closeModal('paymentModal');
+                }
+            }
+        }
         // ==================== ADMIN SEWA ====================
         function approveRental(id) {
             const rental = rentals.find(r => r.id === id);
