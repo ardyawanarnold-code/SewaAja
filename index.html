@@ -5,78 +5,429 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>SewaAja - Tempat Penyewaan Alat Serba Ada</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        @media (max-width: 640px) {
-            .product-image-container { height: 180px !important; }
-            .filter-scroll { overflow-x: auto; white-space: nowrap; flex-wrap: nowrap !important; }
-            .filter-scroll button { flex-shrink: 0; }
+        body {
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
         }
-        .product-image-container { width: 100%; height: 200px; background-color: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-        .product-image { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
-        .status-tersedia { background-color: #d1fae5; color: #059669; }
-        .status-disewa { background-color: #fef3c7; color: #d97706; }
-        .status-menunggu { background-color: #fed7aa; color: #c2410c; }
-        .status-dibayar { background-color: #dbeafe; color: #1d4ed8; }
-        .filter-scroll { display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: thin; padding-bottom: 0.5rem; }
-        .filter-btn.active { background-color: #2563eb !important; color: white !important; }
-        .filter-btn.inactive { background-color: #e5e7eb !important; color: #374151 !important; }
-        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 0.5rem; }
-        table { min-width: 600px; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        .modal-animate { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .fade-in { animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 60px rgba(37, 99, 235, 0.12);
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 40%, #7c3aed 80%, #2563eb 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 8s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border: none;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -8px rgba(37, 99, 235, 0.4);
+        }
+        .btn-gradient:active { transform: scale(0.95); }
+        .search-wrapper { position: relative; }
+        .search-wrapper .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 20px 14px 48px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            font-size: 14px;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .search-wrapper input:focus {
+            border-color: #2563eb;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+        .filter-scroll {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            padding-bottom: 0.5rem;
+        }
+        .filter-scroll::-webkit-scrollbar { height: 4px; }
+        .filter-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
+        .filter-scroll::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 10px; }
+        .filter-btn {
+            padding: 8px 18px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            white-space: nowrap;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #475569;
+            cursor: pointer;
+        }
+        .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.35);
+        }
+        .product-image-container {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 12px;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .glass-card:hover .product-image { transform: scale(1.05); }
+        .status-badge { padding: 3px 12px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+        .status-tersedia { background: #dcfce7; color: #16a34a; }
+        .status-disewa { background: #fef3c7; color: #d97706; }
+        .status-menunggu { background: #fed7aa; color: #c2410c; }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(16px);
+            color: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: translateY(100px) scale(0.9);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 1000;
+            max-width: 90%;
+            font-size: 14px;
+        }
+        .toast.show { transform: translateY(0) scale(1); opacity: 1; }
+        .toast.success { border-left: 4px solid #22c55e; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.info { border-left: 4px solid #3b82f6; }
+        @media (max-width: 640px) {
+            .product-image-container { height: 160px; }
+            .gradient-header { padding: 24px 16px; }
+            .filter-btn { padding: 6px 14px; font-size: 12px; }
+        }
+
+                /* ===== BACKGROUND DENGAN GAMBAR TRANSPARAN + GRADASI TIPIS ===== */
+        body {
+            background: 
+                /* Gradasi tipis dari biru ke ungu */
+                linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(139, 92, 246, 0.06) 50%, rgba(37, 99, 235, 0.04) 100%),
+                /* Pola geometris transparan */
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+                /* Gradasi dasar */
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        /* ===== EFEK GLASSMORPHISM LEBIH MEWAH ===== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                0 20px 60px rgba(37, 99, 235, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            border-color: rgba(37, 99, 235, 0.15);
+        }
+        
+        /* ===== EFEK NAVBAR GLASS ===== */
+        .navbar-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 1px 20px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* ===== EFEK HEADER DENGAN OVERLAY ===== */
+        .gradient-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 40%, #7c3aed 80%, #2563eb 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 8s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        .gradient-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 60%),
+                radial-gradient(circle at 80% 50%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .gradient-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.06) 0%, transparent 60%);
+            animation: shimmer 10s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-30%) translateY(-30%) rotate(0deg); }
+            100% { transform: translateX(30%) translateY(30%) rotate(10deg); }
+        }
+        
+        /* ===== EFEK CARD PRODUK ===== */
+        .product-image-container {
+            background: linear-gradient(135deg, rgba(241, 245, 249, 0.6), rgba(226, 232, 240, 0.6));
+            backdrop-filter: blur(4px);
+            position: relative;
+        }
+        .product-image-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(transparent, rgba(255,255,255,0.3));
+            pointer-events: none;
+        }
+        
+        /* ===== EFEK FILTER BUTTON ===== */
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .filter-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.12);
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 30px -5px rgba(37, 99, 235, 0.35);
+        }
+        
+        /* ===== EFEK SEARCH BAR ===== */
+        .search-wrapper input {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+        }
+        .search-wrapper input:focus {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: #2563eb;
+            box-shadow: 0 4px 30px rgba(37, 99, 235, 0.08);
+        }
+        
+        /* ===== EFEK TOMBOL GRADASI ===== */
+        .btn-gradient {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.6s;
+        }
+        .btn-gradient:hover::before {
+            left: 100%;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px -8px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* ===== DARK MODE TETAP TERJAGA ===== */
+        body.dark-mode {
+            background: 
+                linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(30, 27, 75, 0.97)),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+        body.dark-mode .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            border-color: rgba(255,255,255,0.06);
+        }
+        body.dark-mode .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        body.dark-mode .search-wrapper input {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(255,255,255,0.05);
+            color: #f1f5f9;
+        }
+        body.dark-mode .filter-btn {
+            background: rgba(51, 65, 85, 0.5);
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.05);
+        }
+        body.dark-mode .filter-btn.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+        }
+        body.dark-mode .product-image-container {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.6));
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body>
 
-    <nav class="bg-white shadow px-4 py-3 flex justify-between items-center sticky top-0 z-40">
-        <h1 class="text-xl md:text-2xl font-bold text-blue-600">SewaAja</h1>
-        <div id="navAuth">
-            <button onclick="openModal('authModal')" class="bg-blue-600 text-white px-3 py-1.5 md:px-5 md:py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-blue-700 transition">
-                Login
-            </button>
+    <div id="toast" class="toast"></div>
+
+    <nav class="sticky top-0 z-50 px-4 py-3 flex justify-between items-center glass-card" style="border-radius:0; border-bottom:1px solid rgba(255,255,255,0.2);">
+        <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">SewaAja</h1>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-black/5 transition text-gray-600" id="darkModeBtn">🌙</button>
+            <div id="navAuth">
+                <button onclick="openModal('authModal')" class="btn-gradient text-white px-3 py-1.5 md:px-5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition">Login</button>
+            </div>
         </div>
     </nav>
 
-    <header class="bg-blue-600 text-white py-8 md:py-12 px-4 text-center">
-        <h2 class="text-xl md:text-3xl font-bold">Pusat Rental Alat & Barang Serba Ada</h2>
-        <p class="text-blue-100 text-xs md:text-sm mt-2">Temukan semua kebutuhan sewa Anda di satu tempat!</p>
+    <header class="gradient-header text-white py-10 md:py-14 px-4 text-center shadow-xl relative">
+        <div class="relative z-10">
+            <h2 class="text-2xl md:text-4xl font-bold">🏕️ Pusat Rental Alat Pendakian</h2>
+            <p class="text-blue-100 text-sm md:text-base mt-3 opacity-90 max-w-xl mx-auto">Temukan semua kebutuhan sewa Anda di satu tempat, praktis, lengkap, dan hemat!</p>
+            <div class="flex flex-wrap justify-center gap-3 mt-5 text-xs">
+                <span class="bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full">✅ 100+ Produk</span>
+                <span class="bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full">⭐ 4.9 Rating</span>
+                <span class="bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full">🏆 Terpercaya</span>
+            </div>
+        </div>
     </header>
 
     <main class="max-w-7xl mx-auto p-3 md:p-6 flex-1 w-full">
+        
+        <div class="search-wrapper mb-5">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari barang yang Anda butuhkan...">
+        </div>
+
         <section class="mb-6 md:mb-8">
             <div class="flex flex-col gap-3 mb-4">
-                <h3 class="text-lg md:text-xl font-bold text-gray-800">Katalog Barang</h3>
-                <div id="filterKategori" class="filter-scroll flex gap-2 overflow-x-auto pb-2"></div>
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-800">📦 Katalog Barang</h3>
+                    <span id="productCount" class="text-xs text-gray-500 bg-white/60 backdrop-blur-sm px-3 py-1 rounded-full"></span>
+                </div>
+                <div id="filterKategori" class="filter-scroll"></div>
             </div>
-            <div id="katalogContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6"></div>
+            <div id="katalogContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
         </section>
 
-        <!-- Panel Admin -->
         <div id="adminPanel" style="display: none;">
-            <div class="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h3 class="text-lg md:text-xl font-bold">Panel Kendali Admin</h3>
-                    <button onclick="openModal('productModal')" class="bg-green-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm hover:bg-green-700 transition">+ Tambah Barang</button>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-600" id="statTotal">0</p>
+                    <p class="text-xs text-gray-500">Total Produk</p>
                 </div>
-                <div class="table-wrapper overflow-x-auto">
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-green-600" id="statTersedia">0</p>
+                    <p class="text-xs text-gray-500">Tersedia</p>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-yellow-600" id="statSewa">0</p>
+                    <p class="text-xs text-gray-500">Disewa</p>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-purple-600" id="statPendapatan">Rp 0</p>
+                    <p class="text-xs text-gray-500">Pendapatan</p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-4 md:p-6 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-800">⚙️ Panel Kendali Admin</h3>
+                    <button onclick="openModal('productModal')" class="btn-gradient text-white px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-bold transition">+ Tambah Barang</button>
+                </div>
+                <div class="overflow-x-auto">
                     <table class="w-full text-xs md:text-sm">
-                        <thead class="bg-gray-100">
+                        <thead class="bg-gray-100/50 backdrop-blur-sm">
                             <tr><th class="p-2 text-left">Nama</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Aksi</th></tr>
                         </thead>
                         <tbody id="adminTable"></tbody>
                     </table>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow p-4 md:p-6">
+
+            <div class="glass-card rounded-xl p-4 md:p-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h3 class="text-lg md:text-xl font-bold">Manajemen Penyewaan</h3>
-                    <button onclick="refreshData()" class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm hover:bg-blue-600 transition">🔄 Refresh Data</button>
+                    <h3 class="text-lg md:text-xl font-bold text-gray-800">📋 Manajemen Penyewaan</h3>
+                    <button onclick="refreshData()" class="btn-gradient text-white px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition">🔄 Refresh</button>
                 </div>
-                <div class="table-wrapper overflow-x-auto">
+                <div class="overflow-x-auto">
                     <table class="w-full text-xs md:text-sm">
-                        <thead class="bg-gray-100">
+                        <thead class="bg-gray-100/50 backdrop-blur-sm">
                             <tr><th class="p-2">ID</th><th>Barang</th><th>Penyewa</th><th>WA</th><th>Alamat</th><th>Tgl Sewa</th><th>Total</th><th>Status</th><th>Aksi</th></tr>
                         </thead>
                         <tbody id="rentalTable"></tbody>
@@ -86,226 +437,284 @@
         </div>
     </main>
 
-    <footer class="bg-gray-800 text-gray-400 text-center py-3 text-xs mt-auto">
-        © 2026 SewaAja Marketplace
+    <footer class="text-center py-4 text-xs text-gray-500 mt-auto border-t border-gray-200/20">
+        © 2026 SewaAja Marketplace | Dibuat dengan ❤️
     </footer>
 
     <!-- Modal Login -->
-    <div id="authModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-3">
-        <div class="bg-white rounded-xl p-5 w-full max-w-md">
-            <h3 id="authTitle" class="text-lg md:text-xl font-bold mb-4">Masuk Akun</h3>
-            <input type="email" id="loginEmail" placeholder="Email" class="w-full p-2 border rounded mb-3 text-sm">
-            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-2 border rounded mb-4 text-sm">
+    <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+        <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+            <h3 id="authTitle" class="text-xl font-bold text-gray-800 mb-4 text-center">Masuk Akun</h3>
+            <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-4 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <div class="flex gap-2">
-                <button onclick="handleLogin()" class="bg-blue-600 text-white flex-1 py-2 rounded font-bold text-sm hover:bg-blue-700 transition">Login</button>
-                <button onclick="closeModal('authModal')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 transition">Batal</button>
+                <button onclick="handleLogin()" class="btn-gradient text-white flex-1 py-2.5 rounded-xl font-bold text-sm transition">Login</button>
+                <button onclick="closeModal('authModal')" class="bg-gray-200/80 text-gray-700 px-5 py-2.5 rounded-xl text-sm hover:bg-gray-300/80 transition">Batal</button>
             </div>
-            <p onclick="toggleAuthMode()" id="authSwitch" class="text-blue-600 text-xs text-center mt-3 cursor-pointer hover:underline">Belum punya akun? Daftar</p>
+            <p onclick="toggleAuthMode()" id="authSwitch" class="text-blue-600 text-sm text-center mt-4 cursor-pointer hover:underline">Belum punya akun? Daftar</p>
         </div>
     </div>
 
     <!-- Modal Sewa -->
-    <div id="sewaModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-3">
-        <div class="bg-white rounded-xl p-5 w-full max-w-md max-h-[85vh] overflow-y-auto">
-            <h3 id="sewaTitle" class="text-lg md:text-xl font-bold mb-4">Form Sewa</h3>
+    <div id="sewaModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+        <div class="glass-card rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto">
+            <h3 id="sewaTitle" class="text-xl font-bold text-gray-800 mb-4">Form Sewa</h3>
             <input type="hidden" id="sewaProductId">
             <input type="hidden" id="sewaPrice">
-            <input type="text" id="sewaNama" placeholder="Nama Lengkap" class="w-full p-2 border rounded mb-3 text-sm">
-            <input type="text" id="sewaWA" placeholder="Nomor WhatsApp" class="w-full p-2 border rounded mb-3 text-sm">
-            <textarea id="sewaAlamat" rows="2" placeholder="Alamat Lengkap" class="w-full p-2 border rounded mb-3 text-sm"></textarea>
+            <input type="text" id="sewaNama" placeholder="Nama Lengkap" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <input type="text" id="sewaWA" placeholder="Nomor WhatsApp" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <textarea id="sewaAlamat" rows="2" placeholder="Alamat Lengkap" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none resize-none"></textarea>
             <div class="grid grid-cols-2 gap-3 mb-3">
-                <input type="date" id="sewaTglMulai" onchange="hitungTotal()" class="w-full p-2 border rounded text-sm">
-                <input type="date" id="sewaTglSelesai" onchange="hitungTotal()" class="w-full p-2 border rounded text-sm">
+                <input type="date" id="sewaTglMulai" onchange="hitungTotal()" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                <input type="date" id="sewaTglSelesai" onchange="hitungTotal()" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             </div>
-            <div class="bg-blue-50 p-3 rounded text-center mb-4">
-                <p id="sewaTotal" class="font-bold text-sm">Total: Rp 0</p>
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-xl text-center mb-4">
+                <p id="sewaTotal" class="font-bold text-gray-800 text-sm">Total: Rp 0</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="simpanSewa()" class="bg-blue-600 text-white flex-1 py-2 rounded font-bold text-sm hover:bg-blue-700 transition">Ajukan Sewa</button>
-                <button onclick="closeModal('sewaModal')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 transition">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Pembayaran QR Code -->
-    <div id="paymentModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-3">
-        <div class="bg-white rounded-xl p-5 w-full max-w-md modal-animate">
-            <div class="text-center">
-                <h3 class="text-xl font-bold mb-2">💳 Pembayaran</h3>
-                <p id="paymentAmount" class="text-blue-600 font-bold text-lg mb-2"></p>
-                <p class="text-gray-500 text-xs mb-4">Scan QR Code di bawah untuk membayar</p>
-                
-                <!-- Tempat QR Code -->
-                <div id="qrcode" class="flex justify-center mb-4"></div>
-                
-                <div class="bg-gray-100 p-3 rounded-lg mb-4">
-                    <p class="text-xs text-gray-600">Atau transfer ke:</p>
-                    <p class="font-bold text-sm">Bank BCA - 1234567890</p>
-                    <p class="font-bold text-sm">a.n. SewaAja Official</p>
-                </div>
-                
-                <div class="flex gap-2">
-                    <button onclick="confirmPayment()" class="bg-green-600 text-white flex-1 py-2 rounded font-bold text-sm hover:bg-green-700 transition">✅ Saya Sudah Bayar</button>
-                    <button onclick="closeModal('paymentModal')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 transition">Tutup</button>
-                </div>
-                <p class="text-xs text-gray-400 mt-3">*Setelah bayar, admin akan segera memproses penyewaan Anda</p>
+                <button onclick="simpanSewa()" class="btn-gradient text-white flex-1 py-2.5 rounded-xl font-bold text-sm transition">Ajukan Sewa</button>
+                <button onclick="closeModal('sewaModal')" class="bg-gray-200/80 text-gray-700 px-5 py-2.5 rounded-xl text-sm hover:bg-gray-300/80 transition">Batal</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Produk -->
-    <div id="productModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-3">
-        <div class="bg-white rounded-xl p-5 w-full max-w-md">
-            <h3 id="productTitle" class="text-lg md:text-xl font-bold mb-4">Tambah Barang</h3>
+    <div id="productModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+        <div class="glass-card rounded-2xl p-6 w-full max-w-md">
+            <h3 id="productTitle" class="text-xl font-bold text-gray-800 mb-4">Tambah Barang</h3>
             <input type="hidden" id="productId">
-            <input type="text" id="productName" placeholder="Nama Barang" class="w-full p-2 border rounded mb-3 text-sm">
-            <input type="text" id="productCategory" placeholder="Kategori (bebas)" class="w-full p-2 border rounded mb-3 text-sm">
-            <input type="number" id="productPrice" placeholder="Harga per Hari" class="w-full p-2 border rounded mb-3 text-sm">
-            <input type="text" id="productImage" placeholder="URL Gambar (opsional)" class="w-full p-2 border rounded mb-4 text-sm">
+            <input type="text" id="productName" placeholder="Nama Barang" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <input type="text" id="productCategory" placeholder="Kategori" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <input type="number" id="productPrice" placeholder="Harga per Hari" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <input type="text" id="productImage" placeholder="URL Gambar" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-4 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <div class="flex gap-2">
-                <button onclick="simpanProduk()" class="bg-blue-600 text-white flex-1 py-2 rounded font-bold text-sm hover:bg-blue-700 transition">Simpan</button>
-                <button onclick="closeModal('productModal')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 transition">Tutup</button>
+                <button onclick="simpanProduk()" class="btn-gradient text-white flex-1 py-2.5 rounded-xl font-bold text-sm transition">Simpan</button>
+                <button onclick="closeModal('productModal')" class="bg-gray-200/80 text-gray-700 px-5 py-2.5 rounded-xl text-sm hover:bg-gray-300/80 transition">Tutup</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ==================== DATA ====================
-        let products = [
-            { id: 1, name: "Carrier Eiger 60L", category: "Carrier", price: 30000, status: "Tersedia", image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUTExAVFhAWExIVGRMVEhIVFhcWFhIWFhcYGBUYHSggGBolHhYVIjEhJSkrLi4uFx8zODMsNygtLisBCgoKDg0OGxAQGy4fHyUtLS0tLS8tLS0tLS8vKy0tLS0rLS0tLS0tLS0vLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIAOEA4QMBEQACEQEDEQH/xAAbAAEAAQUBAAAAAAAAAAAAAAAABgIDBAUHAf/EAEIQAAIBAgQDBQUDCQcFAQAAAAABAgMRBBIhMQVBUQYTImGRBzJxgaEUscFCUmJykrLR4fAjM1OCk9LxNENjo8Ik/8QAGgEBAAIDAQAAAAAAAAAAAAAAAAEEAgMFBv/EADYRAQACAgEDAwIEAgkFAQAAAAABAgMRBBIhMQUTUUFhIjJxgRTBFTNCUmKRsdHwIySh4fE0/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADHxGOpQ9+rCP604x+9kTMQzrjtbxEywavabBx3xVL5SUv3bmPuU+W6OJnnxSWJLttgV/3/AEp1P9pj79Plsj07kz/ZeLttgf8AH/8AXU/2j3qfKf6O5P8AdX6Pa3BS2xMV+spR+skT71PlhbgciP7EtlhuIUan93VhP9WcZfczOLRPhXtjvX80TDJJYPLgegAAAAAAAAAAAAAAAAAAAAAR/tF2g+z3jHLKo1pG78PnL6aXuaMuaKR93Q4XAtyJ3Pavz/s53xHiWIrN561R+WZxj8oRsihbNe3mXqcXB4+OPw1hp5YVmHUsRirHhTLDMdTL24U9wxs6FccMNp6V1YYjZ0wuwwqG5RNa/Vt8HxbEUvcr1EujlmXpK6Nlc148Sp5OBx8n5qR/onXZLjjxCkp272Nnppmjte3Xr8i/gy9cd/LzfqXBjjWia/llIje5gAAAAAAAAAAAAAAAAAAAGv47xenhaMq1VvLHkldyk/divNsJiNuXSxjrXrOOWVS83G7eXM3K2vxOXnt1X7PY8HDOLFET5WZLlzNC/HyocQziVtxIZbU5SU7VOFnZiURO43D1BCtBEvQhI+wk7YlfpU5r7pfgWuLP43G9arvBv4l0Y6LyoAAAAAAAAAAAAAAAAAAAGv49i+6w9SonZqOjfJt2T+pry26aTKxxMXu5q0n6y5KmrXjs7bc7uxyXuY14XlG3xIRva20GW1uYZQ2nZvDUnUc60kqdNZsr3k+SS5/8G/j0ibbt4hz/AFLNkjHFMUbm3bfwr7STp1JqtSek9JRas1Jc7dGl9GTn6bT11Y+m+5ir7OX6eJ+zUIrumqSCHoQy+yHEsvEaVP8AOuufOEnoWeP2tDl+rRFuPaJ+mpdeOk8gAAAAAAAAAAAAAAAAAAABou2+FlUwVaMd8qlZdIyUn9EzVmjdJXfTrxTk1mf+bcswsoqKpp6pR9dGzlS9pEfVmMhEKG/QJWpLrt0DP6abOXaKv1ivhFG/+Iuox6Zg+/8AmqXH6rtfI7dYLUfxNmP9GYo8bj92qaNEy6EeNCl6A0qAr7HwVXidGyalS7xu63gqclf9pr1LXGj8UOT6teIwW/ydnOi8iAAAAAAAAAAAAAAAAAAAB4wOOcXjRVeaox/s5SnKNlZWTSbXRXenkcjJ0zael7vh+57Ffc8/VS3p5Gtu+rGlOcnaEVGP58036R/FsHhbnhH+VVm/hlivor/UbZRKj7BHnKf+pP8AiNsniwEVtOp/qz/iNi9Tw8ktKrv+klJP47P0aDGVEq84+/T0/Pg7r5x3X1GiFxVdLrXoEpX7NsNHv6lSVlV7rLFa3yOd5fuw9WXeJrcvP+uzbpr8Oil55sAAAAAAAAAAAAAAAAAAADHx7fdVLb5J/usxt4lni11138w5dheH97UUdbJaqK8WVWlJRtzsrLzOZjp1309jyOT7OGbMntPTous4wpRjGMUmrW1aUnddVdI2cnpi2qq/pk5bYurJO9z2ahxS2KrqxuVEiGcLbDJVEIlWmSx08knyBGm57IVIxqyU6cZuUHZNQu5Rd0o5tLtN8+Rb4mtzEuP6zFvbras6792bwSi6XEIx1Sben6Mqbkk/hp6E0r0Z9NfJyxn9P65+3+e3RC+8wAAAAAAAAAAAAAAAAAAABRWjeLXVNeqIlNZ1O3OuzE7SnPMlKMYyd1q6ad6iXR6RXzKXF/NL0nq/fHSPpM//ABpp187lNrWTb021d9PUq5LbtMuthxxTHWsfCw9WYN8dlvNd6bBl4bXh3ApzjnkpKnveMbu3W38LljHx5t3nw5/I9Rpjt0V1NmFWwuVNp3imk3Zppva5rtTXeFnHyItMVntMrRrbhIC/hMQ6dSM1vGSduvJr5q6+ZsxW6bxKvysUZcNqz8Jbg6d8dRTnmmlVk3a1ovPKC3d7KVr/AAL9o/6sPN1tNeFftqJmNfzTUsOQAAAAAAAAAAAAAAAAAAAAAgOApdy8dUt/dRqxjp1cpR+6PqVMVem1pd3lZfdxYaR5nSJxf5K5LUoS9JWNQtVJtvLH5voiGf3XZJRVkER3naScAx7/AMWV1GEYwTbStHxXi9EvPzL2G/3cPnYO/wCWPMzM/wDthcf4jnvHNLl4Gop5s13JqOmy3erNee++yxwOP0TE6/f7a8NPCa25lV1ZhUwiFLnbVb6E18ovG6zDpXDMNmxbrcnh42f60/4L6nW6fx9X2eJvl/7f2/8AFKQmxTAAAAAAAAAAAAAAAAAAAAAQntnUjTwmIeZWqVoptPleObVJ8oy5M19Man7rlMluumo8QgdGvHJni24ySkm9L3Whyrdp09pjnqrEyuYaOVXfvPX+Riznury83v0Cd/SFGZp3Ts+q0ETrwmaxMakj9QeFTgmrMIlkYDh9apfJBzUbXast9t3ubK47X/LCvm5WLDr3La2xeJQnSg5OLTWZK6teUd/jYdFonun36Xiemd9tum9jMX3mHpP/AMUV+zZHVpO6w8Vy6dGa0f8AO6QmSuAAAAAAAAAAAAAAAAAAABaxLkovLG8raK9gOS8X4g8Rg4UU0qsq1RyTi04wvUSe2jd1pv4mV82Ws11DucHh5a5Oq0dtNLgrNKLeZwSVrWV7bnOtGpekpMTXTPinu/8AgxZvZsELEmQ2PVHoESrjProSx0lPZmbjS0ds2JpRfwtqi9xpmK9vl5/1SsWy6n6VmUb7Z8Tdep3TjaKVRKz5Ravd+ehjfJOS/wCi1xOLXj4dR3m3lJvZpjG5SoRS7mnCTi9W7ymnbNfVassYLzMalyPVcGOluuvmXQTe5AAAAAAAAAAAAAAAAAAAAADl3bXhEvtEvs8G5yVSo4q1vDk26XlK9/NlfJh3O4drg8+a16bzqI8IxwuD1lfNJ2TSsrNNtq3W7Zz773qXpMWpr1RPlnufka22IUhK0Gb1BErid9yWMw3vBcdTp0kpSd1iKcvdk/Ckr6pfQtYbxWvf5cfnce+TLuv92Y8o72/nRilUoOTve78aazS8Vr28tuhlPRN46WNLciOPb3Y7x2jx4b32YdpoVKkKEaEaXhn7v5Tsnqvzti/Exrs81li3VuzqYagAAAAAAAAAAAAAAAAAAAPGwOZ+0HitRZnSvGrdUYvRNyk7tLyso+otbpjbfx8XuXiqD9l4yjGeZ38W+r1Taf1OVmndnseHSa49S3UsQuppW+lQ6l9mExCmSDJ4pAVphCUdno2pU/PEVJfs0GXuPH4Y/X+Tz/qM/wDWtH+GI/zlHu2CjkoKfu9zSv8A5pP8WYX81/RZ4sRNcm/7zV9m6M8NiE6cLu0bZbZnvfXnLRW5tpIsce297cr1TBFNTDt3BsY61CnVcXFzinb8V5PdeTRYcZmgAAAAAAAAAAAAAAAAAAAA5T274T3WJjNNtS72pGLekW1DX1ctfNFbk2mIh2vR8cTa0opwOo3n0s3Nu3x1++5RyeXpMM7rO/ltu7XO1zW27UVMq5BPdZbk+RJ3eQZCV6LCUx7Nqm6ML1YxlCVW6bSfjjlT1fRnQ4/TNI3Py8x6n7tc8zFZmJiP/CLe0JRSjCElNRpUoXTTvaVuXM15ddcRHwu8LrnBa1o1MzvTb+zSoninGS8X2dzV1e1qsefXxfQz4+typ+sb9urqBcefAAAAAAAAAAAAAAAAAAAAAc+9pcYurQurOMJ2l0zSSt8PCUuXPiHofQ6xq8z9kCoYj+3cb2Shrda3UrblW8dndx2/FMNk2upqb1uUyRZk5MlHdR3fVjZp6qrWiCNpdw3DxhRpzlBSlGhWqyul4m5JRTdujZfx1rWsTr6bed5OTJky2pFpj8UR/uj3bmooYiKjBJXoppKyWbV7fE15Yj3Oy3wb2jjxNp33bn2fYlRxkYradOcful6eGw43a7X6xHVx4n4l1IvvLgAAAAAAAAAAAAAAAAAAAAOf+0xWqUXuslRNfCUf4lHl/R6T0HvF4/RBPs0VPMpatW1ett1qU99tO90RFtrzw/RkM9Kbva4FWqJQst3AuUoEJ0m64Oq1OhJVlGMaUI2te9tXrdfA6PtRetZ39HmP4y3Hvkr0bmZnuiXa/LPFyu7pSukno2opa/DUrZrfjnTqcLH/ANvSLQ2vYJv7dDS6yT6aeB6/h8zPjfnVvWd/w8fq6wdB5YAAAAAAAAAAAAAAAAAAADC4xju4o1Ktr5IuVr2v0VyJnUbZ46dd4r8uM8Y4rOtLvJSvUqSUVe9ktXZLkkr6HJvabWmbPdcbFjxY4rj8F1kT8t/ga29460eoTtRVxMUrsaNwwZVZzfhjaJkw3Mr+Hk07PciWUMvbchMpdRr4eMYp4OTklSTeWnrKekd5c2dGvREamrzOSM9rzMZo13+foi3E7OvUtDIlK2Xw+GyV1poVMn5p12dri79mu5328/LXSxOROSlr5b6mNN77NmaKTSYt3h1b2b4mVTAwlKbk801dycnpLa7OpSdw8Xy4iMs6jSUmasAAAAAAAAAAAAAAAAAADRduP+irLqox9ZxNWa3TSZXOBj9zkVr/AM8OQPIt7LLbVrRXVve+f1KHVEvXVrNCpiYwTik2kt73um/ruY9G+7ZOaI7L0qMZLz6mpY1taeD111S5DaOlcknskQl4oRgrv3iUeFFC85pdZJersZVjvDTltqkz9k9nBd58cXBfKlQUvvR0pjv+/wDJ5eP6vf8Agn/zLn1bH5qs3bSU5y57OTt9LFS9Y3Mu9gyarWuvox4xzx0221X4ETeIZ+1N/LpfssrZYVaC2i4zX+ZWl9yLHFvNtxLh+s8euOaWr+ieFtwwAAAAAAAAAAAAAAAAAARr2gztg5ec4L6lfk/1bqej/wD6o/SXK3b01Oa9gxMFgozjOGqcZtXTfNKT+rM5tLT7cTvbKVNrbR7b7/I1y3RC5Gv13IZbeVcUl8SdImViMXJ3kEeWXhZqMoy/NlF2+DuTWdTtjkpF6TX5hLqvanDJXVGWa7krqPvNWb3v5XL88qn0h52PR8++941+/hCI0opNpWbvytYpTO3fikR4WcPLdPdPXz8/mYyzhNfZjUf2qpHrRk/ScP4st8T80uH65/V1/X+TppfeZAAAAAAAAAAAAAAAAAABF/aOv/xSfSdP9634mjkfkdL0mdcmP0lyelVObMPXVsq4fUtVqR6qMvJt3+omOxExuV+Ulmaa5/ejGYZxKxKlBvR2fQJnS1K0feV/MlHhUsQmNG1Sr9EBcTtq7OTIJ7CpycXu9HZJNt6XuZxEzPZrtaKxuZ0tSS352sRpnMxraa+yqOatWl0pwX7Ur/8AyXOLHeXnvW77rWPu6WXXngAAAAAAAAAAAAAAAAAAaXtjg3VwdeKV5ZM6XnBqf4GvLXdJhZ4eT289bfdxbheEnWqwpU1ecpJL8W30SuznVrNp1D1uTPGKk3t4hPo4GipfYcPCM60oN18S4pqKVlZed3ouXm72uRSsfgr+8uHbPktP8RlmYj+zCFY9qFWdK8ZuDyuWtnZ7r+t0UslOmdQ9Bx803pFpjUrEpKWkvC+T/ma9LETvtK4uCVZJSTi09r1Ip722bNtcczG4VMvJrS0xO+32W3wmpG2Z04pu15TS5N/gZThmPLXTm0t+WJn9lx0VS96Sk7X8Oq25dTTaO+l7HfddzGv1Y86t3e+m5EQiZSvsHRco1MRRnmr07R7mSWV097J7py1s+qXzv4K6ruvlwPUcvVeKX7Vn6/dT2u4bTq0ftmF0he1WlpenJ87LbXf4pmOSkTHXX92XF5WTHb2Mv7T8pL7KeGSp4aVWW9aV1+pG6T+bzP4WNvHrqu/lzvU83Xl6Y+iblhzQAAAAAAAAAAAAAAAAAAWsTfK7b2A5DhlLC4jEd1FKtKm1Si2k4qU458l92lst7fArTjmkzNXYryq561pknWp7/dtFjaeBwvdRmnjKqzTkmpZL+a6XsvO7MLW9qmo8ysYsU8vP1W7Ur4+7nuJq3d1oVYdmZhQ6zeqWnXf6cieidbY+7CujxGcZJpx0aaTezT3VzGI+rKcm41PhfxHG6k9JNPZq6jpZO2y13fqzO9rW8tOGmPFP4I0wp4iTd23m89P6RFa7Z3yT5lT9ovaLd9OW38yZrpjXL1dm97PcceFqRqR5K0o396L3X9dETjvNLbhhycVM2OaT+yT4ith6lfvcPXtTxEJxrYe0szcote7ayd3e72abV7l2KxaeqPEuBbPOOnt5I/FXxLpfDYpU4RUcsVGMVFbJJWS9DbEac60zM7llEoAAAAAAAAAAAAAAAAAAAAjfajspSxUdV4uoInTlXGuyOMw7eVd5D62+PM0XwVt4dHB6lkxxq3eGjwTXfwhXhKMc12paJ2TeW+yu0o38zVGDpmNrv9IxkrMV7SyeO16UafiowpYhyjbu5NRlGzzPu22kl4drbmV6zMeEY89a2j8e4+7QfbvNepp9q3wsTzKfMPftq5teonFPwmOZj+YZXDuI01Vg55ZQUldSV1ba7XO1728iaUmJ8Mc3IpakxtuOK8QU6KjKdKc88XTjQUNFZqatBWSfhfxRvtSbRqVKvJpjt1V3r/Ve4F2XxWIa/s3CHV7/AMhTBEd5a83qV7xqnZ1fs32NpYdJtXn1ZYc2ZmZ3KVRVgh6AAAAAAAAAAAAAAAAAAAAABRUpJ7q4EZ7S9jKGJXupPqgROmo4b7McNBeKN31YTMzPeWevZ3hPzF6BDyp7OsI17iAsUvZphF+SgMjh/s/wtKedQV/gBK6GGjBWjFIC8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/Z" },
-            { id: 2, name: "Carrier Consina 50L", category: "Carrier", price: 45000, status: "Tersedia", image: "data:image/jpeg;base64,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" },
-            { id: 3, name: "Tenda Dome 4 Orang", category: "Tenda", price: 50000, status: "Tersedia", image: "https://down-id.img.susercontent.com/file/1b31ee4f7e67c0b144df57eea34dae88" },
-            { id: 4, name: "Tenda Eiger Twin", category: "Tenda", price: 75000, status: "Tersedia", image: "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//catalog-image/90/MTA-151043192/br-m036969-04893_tenda-eiger-flash-tenda-camping-2-orang-dome-double-layer-tent_full05-752947c2.jpg" },
-            { id: 5, name: "Carrier Arei 40L", category: "Carrier", price: 40000, status: "Tersedia", image: "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//catalog-image/121/MTA-99768909/brd-44261_arei-ransel-semi-carrier-pria-40-liter-kapuas-tas-mendaki-rei-gunung-semi-carrier-kapuas-40l_full01.jpg" },
+        // ==================== DATA PRODUK DEFAULT ====================
+        const defaultProducts = [
+            { id: 1, name: "Carrier Eiger 60L", category: "Carrier", price: 30000, status: "Tersedia", image: "data:image/webp;base64,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" },
+            { id: 2, name: "Carrier Consina 50L", category: "Carrier", price: 45000, status: "Tersedia", image: "https://thf.bing.com/th/id/OIP.hylu1mQ2pQm591k25-830gHaHa?w=202&h=202&c=7&r=0&o=7&cb=thfc1falcon2&dpr=1.5&pid=1.7&rm=3" },
+            { id: 3, name: "Tenda Dome 4 Orang", category: "Tenda", price: 50000, status: "Tersedia", image: "https://thf.bing.com/th/id/OIP.k1w33BAT6pDjDSi3Friw3AHaHa?w=202&h=202&c=7&r=0&o=7&cb=thfc1falcon2&dpr=1.5&pid=1.7&rm=3" },
+            { id: 4, name: "Tenda Eiger Twin", category: "Tenda", price: 75000, status: "Tersedia", image: "https://thf.bing.com/th/id/OIP.jeDQgjZhsZ5TcYMEWbjIhAHaFS?w=215&h=180&c=7&r=0&o=7&cb=thfc1falcon2&dpr=1.5&pid=1.7&rm=3" },
+            { id: 5, name: "Carrier Arei 40L", category: "Carrier", price: 40000, status: "Tersedia", image: "https://thf.bing.com/th/id/OIP.oLlUZar2SoR08B7tnpdr-gHaHa?w=179&h=180&c=7&r=0&o=7&cb=thfc1falcon2&dpr=1.5&pid=1.7&rm=3" },
         ];
 
+        let products = [];
         let rentals = [];
         let currentUser = null;
         let isLoginMode = true;
         let selectedCategory = 'Semua';
-        let currentPaymentRentalId = null;
+        let searchQuery = '';
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            setTimeout(() => toast.classList.add('show'), 50);
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
 
         function saveToStorage() {
-            localStorage.setItem('sewaaja_products', JSON.stringify(products));
-            localStorage.setItem('sewaaja_rentals', JSON.stringify(rentals));
+            try {
+                localStorage.setItem('sewaaja_products', JSON.stringify(products));
+                localStorage.setItem('sewaaja_rentals', JSON.stringify(rentals));
+                console.log('✅ Data saved:', products.length, 'products');
+            } catch(e) {
+                console.error('Error saving:', e);
+            }
         }
 
         function loadFromStorage() {
-            const storedProducts = localStorage.getItem('sewaaja_products');
-            if (storedProducts) products = JSON.parse(storedProducts);
-            const storedRentals = localStorage.getItem('sewaaja_rentals');
-            if (storedRentals) {
-                rentals = JSON.parse(storedRentals);
-            } else {
+            try {
+                // Load products
+                const storedProducts = localStorage.getItem('sewaaja_products');
+                if (storedProducts) {
+                    const parsed = JSON.parse(storedProducts);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        products = parsed;
+                        console.log('✅ Products loaded from storage:', products.length);
+                    } else {
+                        products = JSON.parse(JSON.stringify(defaultProducts));
+                        console.log('⚠️ Storage empty, using default products');
+                    }
+                } else {
+                    products = JSON.parse(JSON.stringify(defaultProducts));
+                    console.log('📦 No storage, using default products');
+                }
+                
+                // Load rentals
+                const storedRentals = localStorage.getItem('sewaaja_rentals');
+                if (storedRentals) {
+                    rentals = JSON.parse(storedRentals);
+                    if (!Array.isArray(rentals)) rentals = [];
+                } else {
+                    rentals = [];
+                }
+                
+                // Save to storage to ensure consistency
+                saveToStorage();
+                
+            } catch(e) {
+                console.error('Error loading data:', e);
+                products = JSON.parse(JSON.stringify(defaultProducts));
                 rentals = [];
                 saveToStorage();
             }
         }
 
-        function refreshData() {
-            const stored = localStorage.getItem('sewaaja_rentals');
-            if (stored) {
-                rentals = JSON.parse(stored);
-                renderRentalTable();
-                alert(`✅ Data di-refresh! Total penyewaan: ${rentals.length}`);
-            }
-        }
-
-        // Generate QR Code untuk pembayaran
-        function generateQRCode(amount, rentalId) {
-            currentPaymentRentalId = rentalId;
-            // Data QR: Bisa diisi dengan link pembayaran atau data transfer
-            const qrData = `SewaAja Payment\nID: ${rentalId}\nTotal: Rp ${amount.toLocaleString()}\nBank: BCA 1234567890 a.n SewaAja`;
-            
-            // Clear previous QR
-            const qrcodeDiv = document.getElementById('qrcode');
-            qrcodeDiv.innerHTML = '';
-            
-            // Generate new QR Code
-            new QRCode(qrcodeDiv, {
-                text: qrData,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            document.getElementById('paymentAmount').innerHTML = `Total: Rp ${amount.toLocaleString()}`;
-            openModal('paymentModal');
-        }
-
-        function confirmPayment() {
-            if (currentPaymentRentalId) {
-                const rental = rentals.find(r => r.id === currentPaymentRentalId);
-                if (rental && rental.status === 'Menunggu Pembayaran') {
-                    rental.status = 'Dibayar';
+        function resetData() {
+            if (confirm('⚠️ Reset semua data ke default? Data penyewaan akan hilang!')) {
+                try {
+                    localStorage.removeItem('sewaaja_products');
+                    localStorage.removeItem('sewaaja_rentals');
+                    products = JSON.parse(JSON.stringify(defaultProducts));
+                    rentals = [];
+                    selectedCategory = 'Semua';
+                    searchQuery = '';
+                    document.getElementById('searchInput').value = '';
                     saveToStorage();
-                    alert('✅ Terima kasih! Pembayaran Anda telah dikonfirmasi.\nAdmin akan segera memproses penyewaan Anda.');
-                    closeModal('paymentModal');
                     renderAll();
+                    showToast('✅ Data berhasil direset!', 'success');
+                } catch(e) {
+                    showToast('❌ Gagal reset data!', 'error');
                 }
             }
         }
 
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('darkModeBtn');
+            btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            showToast(document.body.classList.contains('dark-mode') ? '🌙 Mode gelap aktif' : '☀️ Mode terang aktif', 'info');
+        }
+
+        // ==================== RENDER ====================
         function renderAll() {
+            console.log('🔄 Rendering all - Products:', products.length, 'Category:', selectedCategory);
             renderFilter();
             renderCatalog();
-            if (currentUser && currentUser.role === 'admin') {
-                document.getElementById('adminPanel').style.display = 'block';
+            
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            const adminPanel = document.getElementById('adminPanel');
+            if (isAdmin) {
+                adminPanel.style.display = 'block';
                 renderAdminTable();
                 renderRentalTable();
+                updateStats();
             } else {
-                document.getElementById('adminPanel').style.display = 'none';
+                adminPanel.style.display = 'none';
             }
+        }
+
+        function updateStats() {
+            const total = products.length;
+            const tersedia = products.filter(p => p.status === 'Tersedia').length;
+            const disewa = products.filter(p => p.status === 'Disewa').length;
+            const pendapatan = rentals.filter(r => r.status === 'Selesai' || r.status === 'Disewa')
+                .reduce((sum, r) => sum + (r.total_harga || 0), 0);
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statTersedia').textContent = tersedia;
+            document.getElementById('statSewa').textContent = disewa;
+            document.getElementById('statPendapatan').textContent = `Rp ${pendapatan.toLocaleString()}`;
         }
 
         function renderFilter() {
             const container = document.getElementById('filterKategori');
             if (!container) return;
+            
             const categories = ['Semua', ...new Set(products.map(p => p.category))];
             container.innerHTML = '';
+            
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.textContent = cat;
-                const isActive = (selectedCategory === cat);
-                btn.className = `filter-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all ${isActive ? 'active bg-blue-600 text-white' : 'inactive bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
-                btn.onclick = () => { selectedCategory = cat; renderFilter(); renderCatalog(); };
+                const isActive = selectedCategory === cat;
+                btn.className = `filter-btn ${isActive ? 'active' : ''}`;
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    selectedCategory = cat;
+                    console.log('📌 Filter changed to:', cat);
+                    renderFilter();
+                    renderCatalog();
+                };
                 container.appendChild(btn);
             });
+            
+            console.log('🎯 Filter rendered:', categories);
         }
 
         function renderCatalog() {
             const container = document.getElementById('katalogContainer');
             if (!container) return;
-            let filtered = selectedCategory === 'Semua' ? products : products.filter(p => p.category === selectedCategory);
+            
+            // Filter products
+            let filtered = products;
+            if (selectedCategory !== 'Semua') {
+                filtered = filtered.filter(p => p.category === selectedCategory);
+            }
+            if (searchQuery) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+            }
+            
+            console.log('📊 Filtered products:', filtered.length, 'from', products.length);
+            
+            // Update count
+            document.getElementById('productCount').textContent = `${filtered.length} produk`;
+            
+            // Show empty state
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Tidak ada produk di kategori ini</div>';
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-500">
+                        <p class="text-2xl mb-4">😕</p>
+                        <p>Tidak ada produk</p>
+                        <button onclick="resetData()" class="mt-4 text-blue-600 underline text-sm hover:text-blue-800">
+                            🔄 Reset Data
+                        </button>
+                    </div>
+                `;
                 return;
             }
+            
+            // Render products
             container.innerHTML = '';
-            filtered.forEach(p => {
+            filtered.forEach((p, index) => {
                 const card = document.createElement('div');
-                card.className = 'product-card bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-shadow';
+                card.className = `glass-card rounded-xl overflow-hidden fade-in`;
+                card.style.animationDelay = `${index * 0.05}s`;
+                const isDisabled = p.status !== 'Tersedia';
+                const imgUrl = p.image || 'https://picsum.photos/seed/default/300/200';
                 card.innerHTML = `
                     <div class="product-image-container">
-                        <img src="${p.image}" class="product-image" onerror="this.src='https://picsum.photos/id/100/300/200'">
+                        <img src="${imgUrl}" class="product-image" onerror="this.src='https://picsum.photos/seed/error/300/200'">
                     </div>
                     <div class="p-3 md:p-4">
-                        <h4 class="font-bold text-sm md:text-base">${p.name}</h4>
-                        <p class="text-gray-500 text-xs md:text-sm">${p.category}</p>
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-sm md:text-base text-gray-800">${p.name}</h4>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${p.category}</span>
+                        </div>
                         <div class="flex justify-between items-center mt-2">
                             <span class="text-blue-600 font-bold text-xs md:text-sm">Rp ${p.price.toLocaleString()}/hari</span>
-                            <span class="text-xs px-2 py-0.5 rounded ${p.status === 'Tersedia' ? 'status-tersedia' : 'status-disewa'}">${p.status}</span>
+                            <span class="status-badge ${p.status === 'Tersedia' ? 'status-tersedia' : 'status-disewa'}">${p.status}</span>
                         </div>
-                        <button onclick="openSewa(${p.id})" class="mt-3 w-full py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-bold transition ${p.status === 'Tersedia' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}" ${p.status !== 'Tersedia' ? 'disabled' : ''}>
-                            ${p.status === 'Tersedia' ? 'Sewa Sekarang' : 'Sedang Disewa'}
+                        <button onclick="openSewa(${p.id})" class="mt-3 w-full py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-bold transition ${p.status === 'Tersedia' ? 'btn-gradient text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}" ${p.status !== 'Tersedia' ? 'disabled' : ''}>
+                            ${p.status === 'Tersedia' ? '🛒 Sewa Sekarang' : '⛔ Sedang Disewa'}
                         </button>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
+
+        document.getElementById('searchInput')?.addEventListener('input', function() {
+            searchQuery = this.value;
+            renderCatalog();
+        });
 
         function renderAdminTable() {
             const tbody = document.getElementById('adminTable');
@@ -317,7 +726,7 @@
                     <td class="p-2 text-xs md:text-sm">${p.name}</td>
                     <td class="p-2 text-xs md:text-sm">${p.category}</td>
                     <td class="p-2 text-xs md:text-sm">Rp ${p.price.toLocaleString()}</td>
-                    <td class="p-2"><span class="px-2 py-0.5 rounded text-xs ${p.status === 'Tersedia' ? 'bg-green-100' : 'bg-yellow-100'}">${p.status}</span></td>
+                    <td class="p-2"><span class="status-badge ${p.status === 'Tersedia' ? 'status-tersedia' : 'status-disewa'}">${p.status}</span></td>
                     <td class="p-2">
                         <button onclick="editProduct(${p.id})" class="text-blue-600 mr-2 text-xs md:text-sm hover:underline">Edit</button>
                         <button onclick="deleteProduct(${p.id})" class="text-red-600 text-xs md:text-sm hover:underline">Hapus</button>
@@ -331,24 +740,21 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (rentals.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-500">Belum ada data penyewaan</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-500">Belum ada data penyewaan</td></tr>';
                 return;
             }
             const sorted = [...rentals].reverse();
             sorted.forEach(r => {
                 const row = tbody.insertRow();
                 let statusClass = '';
-                if (r.status === 'Menunggu Pembayaran') statusClass = 'status-menunggu';
-                else if (r.status === 'Dibayar') statusClass = 'status-dibayar';
+                if (r.status === 'Menunggu') statusClass = 'status-menunggu';
                 else if (r.status === 'Disewa') statusClass = 'status-disewa';
                 else statusClass = 'status-tersedia';
                 
                 let actions = '';
-                if (r.status === 'Menunggu Pembayaran') {
-                    actions = `<button onclick="confirmPaymentFromAdmin(${r.id})" class="text-green-600 mr-1 text-xs">✅ Konfirmasi</button>
+                if (r.status === 'Menunggu') {
+                    actions = `<button onclick="approveRental(${r.id})" class="text-green-600 mr-1 text-xs">✅ Setujui</button>
                                <button onclick="rejectRental(${r.id})" class="text-red-600 text-xs">❌ Tolak</button>`;
-                } else if (r.status === 'Dibayar') {
-                    actions = `<button onclick="approveRental(${r.id})" class="text-blue-600 text-xs">✓ Proses Sewa</button>`;
                 } else if (r.status === 'Disewa') {
                     actions = `<button onclick="completeRental(${r.id})" class="text-blue-600 text-xs">✓ Selesaikan</button>`;
                 } else {
@@ -358,17 +764,18 @@
                 row.innerHTML = `
                     <td class="p-2 text-xs">${r.id}</td>
                     <td class="p-2 text-xs md:text-sm">${r.product_name}</td>
-                    <td class="p-2 text-xs md:text-sm">${r.penyewa}${r.user_email ? '<br><span class="text-xs text-gray-400">'+r.user_email+'</span>' : ''}</td>
+                    <td class="p-2 text-xs md:text-sm">${r.penyewa}</td>
                     <td class="p-2 text-xs">${r.no_wa || '-'}</td>
                     <td class="p-2 text-xs max-w-[100px] truncate">${r.alamat || '-'}</td>
-                    <td class="p-2 text-xs">${r.tgl_mulai}→${r.tgl_selesai}</td>
+                    <td class="p-2 text-xs">${r.tgl_mulai} → ${r.tgl_selesai}</td>
                     <td class="p-2 text-xs md:text-sm">Rp ${(r.total_harga || 0).toLocaleString()}</td>
-                    <td class="p-2"><span class="px-2 py-0.5 rounded text-xs ${statusClass}">${r.status}</span></td>
+                    <td class="p-2"><span class="status-badge ${statusClass}">${r.status}</span></td>
                     <td class="p-2 text-center">${actions}</td>
                 `;
             });
         }
 
+        // ==================== CRUD ====================
         function editProduct(id) {
             const p = products.find(p => p.id === id);
             if (!p) return;
@@ -377,15 +784,16 @@
             document.getElementById('productName').value = p.name;
             document.getElementById('productCategory').value = p.category;
             document.getElementById('productPrice').value = p.price;
-            document.getElementById('productImage').value = p.image;
+            document.getElementById('productImage').value = p.image || '';
             openModal('productModal');
         }
 
         function deleteProduct(id) {
             if (confirm('Yakin hapus produk ini?')) {
                 products = products.filter(p => p.id !== id);
-                saveToStorage();
+                                saveToStorage();
                 renderAll();
+                showToast('✅ Produk berhasil dihapus', 'success');
             }
         }
 
@@ -395,29 +803,47 @@
             const category = document.getElementById('productCategory').value.trim();
             const price = parseInt(document.getElementById('productPrice').value);
             let image = document.getElementById('productImage').value.trim();
-            if (!name || !category || !price) return alert('Isi nama, kategori, dan harga!');
-            if (!image) image = 'https://picsum.photos/id/100/300/200';
+            
+            if (!name || !category || !price) return showToast('⚠️ Isi semua data!', 'error');
+            if (!image) image = 'https://picsum.photos/seed/' + Date.now() + '/300/200';
+            
             if (id) {
                 const index = products.findIndex(p => p.id == id);
-                if (index !== -1) products[index] = { ...products[index], name, category, price, image };
+                if (index !== -1) {
+                    products[index] = { ...products[index], name, category, price, image };
+                }
+                showToast('✅ Produk berhasil diupdate', 'success');
             } else {
-                const newId = Math.max(...products.map(p => p.id)) + 1;
+                const newId = Math.max(...products.map(p => p.id), 0) + 1;
                 products.push({ id: newId, name, category, price, status: "Tersedia", image });
+                showToast('✅ Produk berhasil ditambahkan', 'success');
             }
             saveToStorage();
             closeModal('productModal');
             renderAll();
         }
 
+        function refreshData() {
+            const stored = localStorage.getItem('sewaaja_rentals');
+            if (stored) {
+                rentals = JSON.parse(stored);
+                renderRentalTable();
+                showToast('✅ Data berhasil di-refresh!', 'success');
+            } else {
+                showToast('⚠️ Tidak ada data penyewaan', 'error');
+            }
+        }
+
+        // ==================== SEWA ====================
         function openSewa(productId) {
             if (!currentUser) {
-                alert('Silakan login dulu!');
+                showToast('⚠️ Silakan login dulu!', 'error');
                 openModal('authModal');
                 return;
             }
             const product = products.find(p => p.id === productId);
             if (!product || product.status !== 'Tersedia') {
-                alert('Barang tidak tersedia!');
+                showToast('⚠️ Barang tidak tersedia!', 'error');
                 return;
             }
             document.getElementById('sewaProductId').value = product.id;
@@ -437,24 +863,32 @@
             const tglSelesai = document.getElementById('sewaTglSelesai').value;
             const harga = parseInt(document.getElementById('sewaPrice').value);
             if (tglMulai && tglSelesai && harga) {
-                const hari = Math.ceil((new Date(tglSelesai) - new Date(tglMulai)) / (1000*60*60*24));
-                if (hari > 0) document.getElementById('sewaTotal').innerHTML = `Total: Rp ${(hari * harga).toLocaleString()}`;
+                const hari = Math.ceil((new Date(tglSelesai) - new Date(tglMulai)) / (1000 * 60 * 60 * 24));
+                if (hari > 0) {
+                    document.getElementById('sewaTotal').innerHTML = `Total: Rp ${(hari * harga).toLocaleString()}`;
+                }
             }
         }
 
         function simpanSewa() {
-            if (!currentUser) return alert('Silakan login dulu!');
+            if (!currentUser) return showToast('⚠️ Silakan login dulu!', 'error');
+            
             const productId = parseInt(document.getElementById('sewaProductId').value);
             const nama = document.getElementById('sewaNama').value.trim();
             const wa = document.getElementById('sewaWA').value.trim();
             const alamat = document.getElementById('sewaAlamat').value.trim();
             const tglMulai = document.getElementById('sewaTglMulai').value;
             const tglSelesai = document.getElementById('sewaTglSelesai').value;
-            if (!nama || !wa || !alamat || !tglMulai || !tglSelesai) return alert('Isi semua data!');
+            
+            if (!nama || !wa || !alamat || !tglMulai || !tglSelesai) {
+                return showToast('⚠️ Isi semua data!', 'error');
+            }
             
             const product = products.find(p => p.id === productId);
-            const hari = Math.ceil((new Date(tglSelesai) - new Date(tglMulai)) / (1000*60*60*24));
-            const totalHarga = product.price * hari;
+            if (!product) return showToast('⚠️ Produk tidak ditemukan!', 'error');
+            
+            const hari = Math.ceil((new Date(tglSelesai) - new Date(tglMulai)) / (1000 * 60 * 60 * 24));
+            if (hari <= 0) return showToast('⚠️ Tanggal selesai harus setelah tanggal mulai!', 'error');
             
             const newRental = {
                 id: Date.now(),
@@ -466,39 +900,27 @@
                 alamat: alamat,
                 tgl_mulai: tglMulai,
                 tgl_selesai: tglSelesai,
-                total_harga: totalHarga,
-                status: 'Menunggu Pembayaran'
+                total_harga: product.price * hari,
+                status: 'Menunggu'
             };
             
             rentals.push(newRental);
             saveToStorage();
-            alert('✅ Permintaan sewa dibuat! Silakan lakukan pembayaran.');
+            showToast('✅ Permintaan sewa diajukan! Menunggu persetujuan admin.', 'success');
             closeModal('sewaModal');
-            
-            // Tampilkan QR Code pembayaran
-            generateQRCode(totalHarga, newRental.id);
-            renderAll();
+            if (currentUser.role === 'admin') renderRentalTable();
         }
 
-        function confirmPaymentFromAdmin(id) {
-            const rental = rentals.find(r => r.id === id);
-            if (rental && rental.status === 'Menunggu Pembayaran') {
-                rental.status = 'Dibayar';
-                saveToStorage();
-                renderAll();
-                alert(`✅ Pembayaran untuk ${rental.product_name} telah dikonfirmasi!`);
-            }
-        }
-
+        // ==================== ADMIN SEWA ====================
         function approveRental(id) {
             const rental = rentals.find(r => r.id === id);
-            if (rental && rental.status === 'Dibayar') {
+            if (rental) {
                 rental.status = 'Disewa';
                 const product = products.find(p => p.id === rental.product_id);
                 if (product) product.status = 'Disewa';
                 saveToStorage();
                 renderAll();
-                alert(`✅ Sewa ${rental.product_name} telah diproses! Barang siap diambil/dikirim.`);
+                showToast(`✅ Sewa ${rental.product_name} disetujui!`, 'success');
             }
         }
 
@@ -509,7 +931,7 @@
                 rental.status = 'Ditolak';
                 saveToStorage();
                 renderAll();
-                alert('❌ Penyewaan ditolak');
+                showToast('❌ Penyewaan ditolak', 'error');
             }
         }
 
@@ -521,31 +943,39 @@
                 if (product && product.status === 'Disewa') product.status = 'Tersedia';
                 saveToStorage();
                 renderAll();
-                alert('✅ Penyewaan selesai! Barang tersedia kembali.');
+                showToast('✅ Penyewaan selesai! Barang tersedia kembali.', 'success');
             }
         }
 
+        // ==================== AUTH ====================
         function handleLogin() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!email || !password) {
+                return showToast('⚠️ Isi email dan password!', 'error');
+            }
+            
             if (isLoginMode) {
                 if (email === 'admin@sewaaja.com' && password === 'admin123') {
                     currentUser = { email: email, role: 'admin' };
-                    document.getElementById('navAuth').innerHTML = `<span class="text-green-600 font-bold text-xs md:text-sm">Admin: ${email} <button onclick="logout()" class="ml-1 text-red-500 text-xs hover:underline">Logout</button></span>`;
+                    document.getElementById('navAuth').innerHTML = `<span class="text-green-600 font-bold text-xs md:text-sm">👑 Admin: ${email} <button onclick="logout()" class="ml-1 text-red-500 text-xs hover:underline">Logout</button></span>`;
                     closeModal('authModal');
                     const stored = localStorage.getItem('sewaaja_rentals');
                     if (stored) rentals = JSON.parse(stored);
                     renderAll();
+                    showToast('✅ Login sebagai Admin!', 'success');
                 } else if (email === 'user1@gmail.com' && password === 'user123') {
                     currentUser = { email: email, role: 'user' };
-                    document.getElementById('navAuth').innerHTML = `<span class="text-green-600 font-bold text-xs md:text-sm">User: ${email} <button onclick="logout()" class="ml-1 text-red-500 text-xs hover:underline">Logout</button></span>`;
+                    document.getElementById('navAuth').innerHTML = `<span class="text-green-600 font-bold text-xs md:text-sm">👤 User: ${email} <button onclick="logout()" class="ml-1 text-red-500 text-xs hover:underline">Logout</button></span>`;
                     closeModal('authModal');
                     renderAll();
+                    showToast('✅ Login sebagai User!', 'success');
                 } else {
-                    alert('Login gagal!\n\nAdmin: admin@sewaaja.com / admin123\nUser: user1@gmail.com / user123');
+                    showToast('❌ Login gagal! Gunakan akun demo:\nAdmin: admin@sewaaja.com / admin123\nUser: user1@gmail.com / user123', 'error');
                 }
             } else {
-                alert('Gunakan akun demo yang tersedia.');
+                showToast('📝 Silakan login dengan akun demo yang tersedia', 'info');
                 isLoginMode = true;
                 document.getElementById('authTitle').innerText = 'Masuk Akun';
                 document.getElementById('authSwitch').innerText = 'Belum punya akun? Daftar';
@@ -554,8 +984,9 @@
 
         function logout() {
             currentUser = null;
-            document.getElementById('navAuth').innerHTML = `<button onclick="openModal('authModal')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold hover:bg-blue-700 transition">Login</button>`;
+            document.getElementById('navAuth').innerHTML = `<button onclick="openModal('authModal')" class="btn-gradient text-white px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition">Login</button>`;
             renderAll();
+            showToast('👋 Anda telah logout', 'info');
         }
 
         function toggleAuthMode() {
@@ -564,11 +995,32 @@
             document.getElementById('authSwitch').innerText = isLoginMode ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Login';
         }
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        // ==================== MODAL ====================
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
 
+        // ==================== INIT ====================
+        // Load data from storage or use default
         loadFromStorage();
+        
+        // Check for dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeBtn').textContent = '☀️';
+        }
+        
+        // Render everything
         renderAll();
+        
+        console.log('🚀 Website SewaAja siap digunakan!');
+        console.log('📦 Total produk:', products.length);
+        console.log('🔑 Login: admin@sewaaja.com / admin123');
+        console.log('🔑 Login: user1@gmail.com / user123');
     </script>
 </body>
 </html>
