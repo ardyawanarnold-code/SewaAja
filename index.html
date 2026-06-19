@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
+        /* ===== CSS LENGKAP (sama seperti sebelumnya) ===== */
         body {
             background: linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(139, 92, 246, 0.06) 50%, rgba(37, 99, 235, 0.04) 100%),
                 url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
@@ -168,6 +169,7 @@
         .status-disewa { background: #fef3c7; color: #d97706; }
         .status-menunggu { background: #fed7aa; color: #c2410c; }
         .status-dibayar { background: #dbeafe; color: #1d4ed8; }
+        .status-ditolak { background: #fecaca; color: #dc2626; }
         .toast {
             position: fixed;
             bottom: 24px;
@@ -252,7 +254,7 @@
 
     <div id="toast" class="toast"></div>
 
-    <!-- ===== WHATSAPP FLOATING BUTTON ===== -->
+    <!-- WhatsApp Floating Button -->
     <a href="https://wa.me/6285870408523?text=Halo%20Admin%20SewaAja%2C%20saya%20ingin%20bertanya%20tentang%20penyewaan%20alat%20pendakian."
        target="_blank"
        class="whatsapp-float"
@@ -288,13 +290,13 @@
 
     <main class="max-w-7xl mx-auto p-3 md:p-6 flex-1 w-full">
         
-        <!-- ===== SEARCH BAR ===== -->
+        <!-- Search Bar -->
         <div class="search-wrapper mb-5">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" placeholder="Cari perlengkapan pendakian...">
         </div>
 
-        <!-- ===== KATALOG ===== -->
+        <!-- Katalog -->
         <section class="mb-6 md:mb-8">
             <div class="flex flex-col gap-3 mb-4">
                 <div class="flex justify-between items-center">
@@ -306,7 +308,7 @@
             <div id="katalogContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
         </section>
 
-        <!-- ===== ADMIN PANEL ===== -->
+        <!-- Admin Panel -->
         <div id="adminPanel" style="display: none;">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 <div class="glass-card rounded-xl p-4 text-center">
@@ -363,7 +365,7 @@
         © 2026 SewaAja Marketplace | Dibuat dengan ❤️
     </footer>
 
-    <!-- ===== MODAL LOGIN ===== -->
+    <!-- Modal Login -->
     <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md">
             <h3 id="authTitle" class="text-xl font-bold text-gray-800 mb-4 text-center">Masuk Akun</h3>
@@ -377,7 +379,7 @@
         </div>
     </div>
 
-    <!-- ===== MODAL SEWA ===== -->
+    <!-- Modal Sewa -->
     <div id="sewaModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto">
             <h3 id="sewaTitle" class="text-xl font-bold text-gray-800 mb-4">Form Sewa Alat</h3>
@@ -388,7 +390,7 @@
             <input type="text" id="sewaWA" placeholder="Nomor WhatsApp" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <textarea id="sewaAlamat" rows="2" placeholder="Alamat Lengkap" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none resize-none"></textarea>
             
-            <!-- ===== PILIHAN METODE PEMBAYARAN ===== -->
+            <!-- Pilihan Metode Pembayaran -->
             <div class="mb-3">
                 <label class="block text-xs font-bold text-gray-500 mb-2">Metode Pembayaran</label>
                 <div class="grid grid-cols-2 gap-3">
@@ -418,7 +420,7 @@
         </div>
     </div>
 
-    <!-- ===== MODAL QR CODE PEMBAYARAN ===== -->
+    <!-- Modal QR Code Pembayaran -->
     <div id="paymentModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md animate-[fadeInUp_0.3s_ease-out]">
             <div class="text-center">
@@ -434,17 +436,14 @@
                     <p class="font-bold text-sm text-gray-800 dark:text-white">a.n. SewaAja Official</p>
                 </div>
                 
-                <!-- TOMBOL 1: Saya Sudah Bayar -->
                 <button onclick="confirmPayment()" class="w-full mb-2 py-2.5 rounded-xl font-bold text-sm transition bg-blue-600 text-white hover:bg-blue-700">
                     ✅ Saya Sudah Bayar
                 </button>
                 
-                <!-- TOMBOL 2: Kirim Bukti ke WhatsApp -->
                 <button onclick="kirimKeWA()" class="w-full mb-2 py-2.5 rounded-xl font-bold text-sm transition bg-green-600 text-white hover:bg-green-700">
                     💬 Kirim Bukti ke WhatsApp
                 </button>
                 
-                <!-- TOMBOL 3: Selesai (Baru muncul setelah kirim bukti) -->
                 <button id="btnSelesaiBayar" onclick="selesaikanPembayaran()" 
                         class="w-full mb-2 py-2.5 rounded-xl font-bold text-sm transition bg-purple-600 text-white hover:bg-purple-700 hidden">
                     ✅ Selesai & Konfirmasi
@@ -461,13 +460,13 @@
         </div>
     </div>
 
-    <!-- ===== MODAL PRODUK ===== -->
+    <!-- Modal Produk -->
     <div id="productModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
         <div class="glass-card rounded-2xl p-6 w-full max-w-md">
             <h3 id="productTitle" class="text-xl font-bold text-gray-800 mb-4">Tambah Alat</h3>
             <input type="hidden" id="productId">
             <input type="text" id="productName" placeholder="Nama Alat" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
-                        <input type="text" id="productCategory" placeholder="Kategori" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+            <input type="text" id="productCategory" placeholder="Kategori" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <input type="number" id="productPrice" placeholder="Harga per Hari" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-3 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <input type="text" id="productImage" placeholder="URL Gambar" class="w-full p-3 border-0 rounded-xl bg-gray-100/70 mb-4 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <div class="flex gap-2">
@@ -479,7 +478,7 @@
 
     <script>
         // ==================== DATA PRODUK DEFAULT ====================
-        const defaultProducts = [
+ const defaultProducts = [
             { id: 1, name: "Carrier Eiger 60L", category: "Carrier", price: 30000, status: "Tersedia", image: "data:image/jpeg;base64,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" },
             { id: 2, name: "Carrier Consina 50L", category: "Carrier", price: 45000, status: "Tersedia", image: "data:image/jpeg;base64,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" },
             { id: 3, name: "Tenda Dome 4 Orang", category: "Tenda", price: 50000, status: "Tersedia", image: "data:image/jpeg;base64,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" },
@@ -500,12 +499,7 @@
         // ==================== TOAST ====================
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
-            const icons = {
-                success: '✅',
-                error: '❌',
-                info: 'ℹ️',
-                warning: '⚠️'
-            };
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
             toast.innerHTML = `${icons[type] || '📢'} ${message}`;
             toast.className = `toast ${type}`;
             setTimeout(() => toast.classList.add('show'), 50);
@@ -605,9 +599,7 @@
             }
             kirimPesanWA(rental);
             
-            // Tandai bahwa bukti sudah dikirim
             buktiTerkirim = true;
-            // Tampilkan tombol Selesai
             const btnSelesai = document.getElementById('btnSelesaiBayar');
             btnSelesai.classList.remove('hidden');
             btnSelesai.innerHTML = '✅ Selesai & Konfirmasi';
@@ -615,34 +607,13 @@
         }
 
         function kirimPesanWA(rental) {
-            // 🔴 GANTI NOMOR INI DENGAN NOMOR WHATSAPP ADMIN ANDA 🔴
             const adminWA = '6285870408523';
             
             let pesan = '';
             if (rental.metode === 'qris') {
-                pesan = `✅ KONFIRMASI PEMBAYARAN QRIS ✅
-
-🧑‍🤝‍🧑 Nama: ${rental.penyewa}
-📦 Barang: ${rental.product_name}
-📅 Tanggal: ${rental.tgl_mulai} s/d ${rental.tgl_selesai}
-💰 Total: Rp ${rental.total_harga.toLocaleString()}
-📱 No. WA: ${rental.no_wa}
-📍 Alamat: ${rental.alamat}
-
-📎 *Bukti pembayaran terlampir*
-
-Terima kasih! 🙏`;
+                pesan = `✅ KONFIRMASI PEMBAYARAN QRIS ✅\n\n🧑‍🤝‍🧑 Nama: ${rental.penyewa}\n📦 Barang: ${rental.product_name}\n📅 Tanggal: ${rental.tgl_mulai} s/d ${rental.tgl_selesai}\n💰 Total: Rp ${rental.total_harga.toLocaleString()}\n📱 No. WA: ${rental.no_wa}\n📍 Alamat: ${rental.alamat}\n\n📎 *Bukti pembayaran terlampir*\n\nTerima kasih! 🙏`;
             } else {
-                pesan = `🏪 KONFIRMASI BAYAR DI TEMPAT 🏪
-
-🧑‍🤝‍🧑 Nama: ${rental.penyewa}
-📦 Barang: ${rental.product_name}
-📅 Tanggal: ${rental.tgl_mulai} s/d ${rental.tgl_selesai}
-💰 Total: Rp ${rental.total_harga.toLocaleString()}
-📱 No. WA: ${rental.no_wa}
-📍 Alamat: ${rental.alamat}
-
-Saya akan bayar langsung di tempat. Terima kasih! 🙏`;
+                pesan = `🏪 KONFIRMASI BAYAR DI TEMPAT 🏪\n\n🧑‍🤝‍🧑 Nama: ${rental.penyewa}\n📦 Barang: ${rental.product_name}\n📅 Tanggal: ${rental.tgl_mulai} s/d ${rental.tgl_selesai}\n💰 Total: Rp ${rental.total_harga.toLocaleString()}\n📱 No. WA: ${rental.no_wa}\n📍 Alamat: ${rental.alamat}\n\nSaya akan bayar langsung di tempat. Terima kasih! 🙏`;
             }
             
             const encodedPesan = encodeURIComponent(pesan);
@@ -653,20 +624,7 @@ Saya akan bayar langsung di tempat. Terima kasih! 🙏`;
         function kirimBuktiWATanpaTutup(rental) {
             const adminWA = '6285870408523';
             
-            const pesan = `✅ KONFIRMASI PEMBAYARAN SEWAAJA ✅
-
-🧑‍🤝‍🧑 Nama Penyewa: ${rental.penyewa}
-📦 Barang: ${rental.product_name}
-📅 Tanggal Sewa: ${rental.tgl_mulai} s/d ${rental.tgl_selesai}
-💰 Total Bayar: Rp ${rental.total_harga.toLocaleString()}
-📱 No. WA: ${rental.no_wa}
-📍 Alamat: ${rental.alamat}
-💳 Metode: QRIS
-
-📎 *Saya sudah bayar, ini bukti pembayarannya:*
-[Silakan lampirkan foto bukti transfer]
-
-Terima kasih! 🙏`;
+            const pesan = `✅ KONFIRMASI PEMBAYARAN SEWAAJA ✅\n\n🧑‍🤝‍🧑 Nama Penyewa: ${rental.penyewa}\n📦 Barang: ${rental.product_name}\n📅 Tanggal Sewa: ${rental.tgl_mulai} s/d ${rental.tgl_selesai}\n💰 Total Bayar: Rp ${rental.total_harga.toLocaleString()}\n📱 No. WA: ${rental.no_wa}\n📍 Alamat: ${rental.alamat}\n💳 Metode: QRIS\n\n📎 *Saya sudah bayar, ini bukti pembayarannya:*\n[Silakan lampirkan foto bukti transfer]\n\nTerima kasih! 🙏`;
             
             const encodedPesan = encodeURIComponent(pesan);
             const waUrl = `https://wa.me/${adminWA}?text=${encodedPesan}`;
@@ -687,7 +645,6 @@ Terima kasih! 🙏`;
                     if (confirmWA) {
                         kirimBuktiWATanpaTutup(rental);
                         showToast('✅ WhatsApp terbuka! Kirim bukti pembayaran Anda.', 'success');
-                        // Tandai bukti sudah dikirim
                         buktiTerkirim = true;
                         const btnSelesai = document.getElementById('btnSelesaiBayar');
                         btnSelesai.classList.remove('hidden');
@@ -748,8 +705,12 @@ Terima kasih! 🙏`;
             const total = products.length;
             const tersedia = products.filter(p => p.status === 'Tersedia').length;
             const disewa = products.filter(p => p.status === 'Disewa').length;
-            const pendapatan = rentals.filter(r => r.status === 'Selesai' || r.status === 'Disewa')
+            
+            // Hitung pendapatan dari rental yang sudah selesai (Selesai) dan yang sedang disewa (Disewa)
+            const pendapatan = rentals
+                .filter(r => r.status === 'Selesai' || r.status === 'Disewa')
                 .reduce((sum, r) => sum + (r.total_harga || 0), 0);
+            
             document.getElementById('statTotal').textContent = total;
             document.getElementById('statTersedia').textContent = tersedia;
             document.getElementById('statSewa').textContent = disewa;
@@ -858,6 +819,7 @@ Terima kasih! 🙏`;
             });
         }
 
+        // ==================== RENDER RENTAL TABLE (FIX) ====================
         function renderRentalTable() {
             const tbody = document.getElementById('rentalTable');
             if (!tbody) return;
@@ -874,6 +836,8 @@ Terima kasih! 🙏`;
                 else if (r.status === 'Menunggu Konfirmasi') statusClass = 'status-menunggu';
                 else if (r.status === 'Dibayar') statusClass = 'status-dibayar';
                 else if (r.status === 'Disewa') statusClass = 'status-disewa';
+                else if (r.status === 'Selesai') statusClass = 'status-tersedia';
+                else if (r.status === 'Ditolak') statusClass = 'status-ditolak';
                 else statusClass = 'status-tersedia';
                 
                 let actions = '';
@@ -1004,7 +968,7 @@ Terima kasih! 🙏`;
                 rental.status = 'Dibayar';
                 saveToStorage();
                 renderAll();
-                showToast(`✅ Pembayaran ${rental.product_name} telah dikonfirmasi!`, 'success');
+                showToast(`✅ Pembayaran ${rental.product_name} telah dikonfirmasi! Silakan proses sewa.`, 'success');
             }
         }
 
@@ -1111,16 +1075,22 @@ Terima kasih! 🙏`;
             if (currentUser.role === 'admin') renderRentalTable();
         }
 
-        // ==================== ADMIN SEWA ====================
+        // ==================== ADMIN SEWA (FIX) ====================
         function approveRental(id) {
             const rental = rentals.find(r => r.id === id);
             if (rental) {
+                // Ubah status rental menjadi Disewa
                 rental.status = 'Disewa';
+                
+                // Ubah status produk menjadi Disewa
                 const product = products.find(p => p.id === rental.product_id);
-                if (product) product.status = 'Disewa';
+                if (product) {
+                    product.status = 'Disewa';
+                }
+                
                 saveToStorage();
                 renderAll();
-                showToast(`✅ Sewa ${rental.product_name} disetujui!`, 'success');
+                showToast(`✅ Sewa ${rental.product_name} telah diproses! Barang sedang disewa.`, 'success');
             }
         }
 
@@ -1138,12 +1108,18 @@ Terima kasih! 🙏`;
         function completeRental(id) {
             const rental = rentals.find(r => r.id === id);
             if (rental) {
+                // Ubah status rental menjadi Selesai
                 rental.status = 'Selesai';
+                
+                // Kembalikan status produk menjadi Tersedia
                 const product = products.find(p => p.id === rental.product_id);
-                if (product && product.status === 'Disewa') product.status = 'Tersedia';
+                if (product && product.status === 'Disewa') {
+                    product.status = 'Tersedia';
+                }
+                
                 saveToStorage();
                 renderAll();
-                showToast('✅ Penyewaan selesai! Alat tersedia kembali.', 'success');
+                showToast(`✅ Penyewaan ${rental.product_name} selesai! Barang tersedia kembali.`, 'success');
             }
         }
 
@@ -1221,4 +1197,4 @@ Terima kasih! 🙏`;
         console.log('💡 Fitur: QRIS + Bayar di Tempat + Konfirmasi WhatsApp');
     </script>
 </body>
-</html>        
+</html>
