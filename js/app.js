@@ -1,5 +1,5 @@
 // ============================================================
-// SEWAAJA - APP.JS (LENGKAP & FIX)
+// SEWAAJA - APP.JS (FIX - TIDAK ADA DUPLIKASI supabase)
 // ============================================================
 
 // ==================== SUPABASE CONFIG ====================
@@ -7,7 +7,7 @@
 const SUPABASE_URL = 'https://ltitsmpdizbomyprofsh.supabase.co/rest/v1/';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0aXRzbXBkaXpib215cHJvZnNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4Mzk0MTAsImV4cCI6MjA5NjQxNTQxMH0.QOuA9xW9AMtYbYwg895taraq2a1O0qNyWghepyDZuwk';
 
-// DEKLARASI SUPABASE - HANYA SEKALI!
+// DEKLARASI supabase - HANYA SEKALI!
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 console.log('✅ Supabase connected!');
 
@@ -52,7 +52,6 @@ function saveToStorageLocal() {
 
 async function loadFromStorage() {
     try {
-        // Coba dari Supabase
         const { data: productsData, error: productsError } = await supabase
             .from('products')
             .select('*')
@@ -64,7 +63,6 @@ async function loadFromStorage() {
             products = productsData;
             console.log('✅ Products loaded from Supabase:', products.length);
         } else {
-            // Jika kosong, pakai default
             products = JSON.parse(JSON.stringify(defaultProducts));
             console.log('📦 Using default products');
         }
@@ -80,7 +78,6 @@ async function loadFromStorage() {
         
     } catch(e) {
         console.error('❌ Supabase error:', e);
-        // Fallback ke LocalStorage
         loadFromStorageLocal();
     }
 }
@@ -103,49 +100,6 @@ function loadFromStorageLocal() {
     } catch(e) {
         products = JSON.parse(JSON.stringify(defaultProducts));
         rentals = [];
-    }
-}
-
-async function saveToStorage() {
-    try {
-        // Simpan ke Supabase
-        for (const product of products) {
-            const { error } = await supabase
-                .from('products')
-                .upsert({
-                    id: product.id,
-                    name: product.name,
-                    category: product.category,
-                    price: product.price,
-                    status: product.status,
-                    image_url: product.image || product.image_url
-                }, { onConflict: 'id' });
-            if (error) console.error('Upsert product error:', error);
-        }
-        for (const rental of rentals) {
-            const { error } = await supabase
-                .from('rentals')
-                .upsert({
-                    id: rental.id,
-                    product_id: rental.product_id,
-                    product_name: rental.product_name,
-                    penyewa: rental.penyewa,
-                    user_email: rental.user_email,
-                    no_wa: rental.no_wa,
-                    alamat: rental.alamat,
-                    tgl_mulai: rental.tgl_mulai,
-                    tgl_selesai: rental.tgl_selesai,
-                    total_harga: rental.total_harga,
-                    metode: rental.metode || 'qris',
-                    status: rental.status,
-                    tanggal_pengajuan: rental.tanggal_pengajuan || new Date().toISOString()
-                }, { onConflict: 'id' });
-            if (error) console.error('Upsert rental error:', error);
-        }
-        console.log('💾 Saved to Supabase');
-    } catch(e) {
-        console.error('❌ Save to Supabase error:', e);
-        saveToStorageLocal();
     }
 }
 
@@ -272,7 +226,6 @@ function renderAdminTable() {
     });
 }
 
-// ==================== RENTAL TABLE ====================
 function renderRentalTable() {
     const tbody = document.getElementById('rentalTable');
     if (!tbody) return;
@@ -513,7 +466,6 @@ function generateQRCode(amount, rentalId) {
     openModal('paymentModal');
 }
 
-// ==================== WHATSAPP ====================
 function kirimKeWA() {
     const rental = rentals.find(r => r.id === currentPaymentRentalId);
     if (!rental) {
@@ -650,7 +602,6 @@ function toggleAuthMode() {
     document.getElementById('authSwitch').innerText = isLoginMode ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Login';
 }
 
-// ==================== PILIH METODE ====================
 function pilihMetode(metode) {
     metodePembayaran = metode;
     document.getElementById('sewaMetode').value = metode;
